@@ -1,11 +1,20 @@
 package main
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github/database"
+	"github/routes"
 
-func main()  {
+	"github.com/gofiber/fiber/v2"
+)
+
+func main() {
+	// Initialize database
+	database.DatabaseInit()
+
 	app := fiber.New()
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+
+	// Initialize routes
+	routes.RouteInit(app)
+
 	app.Listen(":3000")
 }
