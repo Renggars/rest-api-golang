@@ -7,6 +7,7 @@ import (
 )
 
 func RouteInit(app *fiber.App) {
-	app.Get("/user", handlers.UserHandlerGetAll)
 	app.Post("/user", handlers.UserHandlerCreate)
+	app.Get("/user", handlers.UserHandlerGetAll)
+	app.Get("/user/:id", handlers.UserHandlerGetById)
 }

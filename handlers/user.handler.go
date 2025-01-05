@@ -4,6 +4,7 @@ import (
 	"github/database"
 	"github/models/entity"
 	"github/models/request"
+	"github/models/responses"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -59,5 +60,32 @@ func UserHandlerCreate(c *fiber.Ctx) error {
 		"message": "success",
 		"data":    newUser,
 	})
+}
 
+func UserHandlerGetById(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	var user entity.User
+	result := database.DB.Debug().First(&user, userId)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": result.Error.Error(),
+			"data":    nil},
+		)
+	}
+
+	userResponse := responses.UserResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Address:   user.Address,
+		Phone:     user.Phone,
+		CreatedAt: user.CreatedAt.String(),
+		UpdatedAt: user.UpdatedAt.String(),
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+		"data":    userResponse,
+	})
 }
