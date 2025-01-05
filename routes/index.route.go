@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"github/controllers"
+	"github/handlers"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func RouteInit(app *fiber.App) {
-	app.Get("/", controllers.UserHandlerRead)
+	app.Get("/user", handlers.UserHandlerGetAll)
 }

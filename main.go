@@ -2,7 +2,7 @@ package main
 
 import (
 	"github/database"
-	"github/models/migration"
+	// "github/database/migration"
 	"github/routes"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +13,7 @@ func main() {
 	database.DatabaseInit()
 
 	// Run migration
-	migration.RunMigration()
+	// migration.RunMigration()
 
 	app := fiber.New()
 
