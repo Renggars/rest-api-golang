@@ -113,10 +113,6 @@ func UserHandlerUpdate(c *fiber.Ctx) error {
 		user.Name = userRequest.Name
 	}
 
-	if userRequest.Email != "" {
-		user.Email = userRequest.Email
-	}
-
 	if userRequest.Address != "" {
 		user.Address = userRequest.Address
 	}
@@ -124,6 +120,59 @@ func UserHandlerUpdate(c *fiber.Ctx) error {
 	if userRequest.Phone != "" {
 		user.Phone = userRequest.Phone
 	}
+
+	resultUpdate := database.DB.Debug().Save(&user)
+	if resultUpdate.Error != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": resultUpdate.Error.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+		"data":    user,
+	})
+}
+
+func UserHandlerUpdateEmail(c *fiber.Ctx) error {
+	userRequest := new(request.UserUpdateEmailRequest)
+	if err := c.BodyParser(userRequest); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// Membuat instance validator baru
+	validate := validator.New()
+
+	// Melakukan validasi terhadap body request
+	if err := validate.Struct(userRequest); err != nil {
+		// Mengembalikan error validasi
+		return c.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	var user entity.User
+
+	userId := c.Params("id")
+
+	result := database.DB.Debug().First(&user, userId)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+
+	//check availability email
+	checkEmail := database.DB.Debug().First(&user, "email = ?", userRequest.Email)
+	if checkEmail.Error == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "email already exist",
+		})
+	}
+
+	user.Email = userRequest.Email
 
 	resultUpdate := database.DB.Debug().Save(&user)
 	if resultUpdate.Error != nil {

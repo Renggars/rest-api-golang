@@ -11,4 +11,5 @@ func RouteInit(app *fiber.App) {
 	app.Get("/user", handlers.UserHandlerGetAll)
 	app.Get("/user/:id", handlers.UserHandlerGetById)
 	app.Put("/user/:id", handlers.UserHandlerUpdate)
+	app.Put("/user/:id/update-email", handlers.UserHandlerUpdateEmail)
 }
