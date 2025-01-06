@@ -89,3 +89,51 @@ func UserHandlerGetById(c *fiber.Ctx) error {
 		"data":    userResponse,
 	})
 }
+
+func UserHandlerUpdate(c *fiber.Ctx) error {
+	userRequest := new(request.UserUpdateRequest)
+	if err := c.BodyParser(userRequest); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	var user entity.User
+
+	userId := c.Params("id")
+
+	result := database.DB.Debug().First(&user, userId)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+
+	if userRequest.Name != "" {
+		user.Name = userRequest.Name
+	}
+
+	if userRequest.Email != "" {
+		user.Email = userRequest.Email
+	}
+
+	if userRequest.Address != "" {
+		user.Address = userRequest.Address
+	}
+
+	if userRequest.Phone != "" {
+		user.Phone = userRequest.Phone
+	}
+
+	resultUpdate := database.DB.Debug().Save(&user)
+	if resultUpdate.Error != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": resultUpdate.Error.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+		"data":    user,
+	})
+}
