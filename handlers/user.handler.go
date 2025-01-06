@@ -186,3 +186,27 @@ func UserHandlerUpdateEmail(c *fiber.Ctx) error {
 		"data":    user,
 	})
 }
+
+func UserHandlerDelete(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	var user entity.User
+	//check availability user
+	result := database.DB.Debug().First(&user, userId)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "user not found",
+		})
+	}
+
+	resultDelete := database.DB.Debug().Delete(&user)
+	if resultDelete.Error != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": resultDelete.Error.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
+}
