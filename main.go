@@ -2,6 +2,8 @@ package main
 
 import (
 	"github/database"
+	"github/database/migration"
+
 	// "github/database/migration"
 	"github/routes"
 
@@ -13,7 +15,7 @@ func main() {
 	database.DatabaseInit()
 
 	// Run migration
-	// migration.RunMigration()
+	migration.RunMigration()
 
 	app := fiber.New()
 

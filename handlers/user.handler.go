@@ -42,10 +42,11 @@ func UserHandlerCreate(c *fiber.Ctx) error {
 	}
 
 	newUser := entity.User{
-		Name:    user.Name,
-		Email:   user.Email,
-		Address: user.Address,
-		Phone:   user.Phone,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
+		Address:  user.Address,
+		Phone:    user.Phone,
 	}
 
 	result := database.DB.Debug().Create(&newUser)
@@ -78,6 +79,7 @@ func UserHandlerGetById(c *fiber.Ctx) error {
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
+		Password:  user.Password,
 		Address:   user.Address,
 		Phone:     user.Phone,
 		CreatedAt: user.CreatedAt.String(),
@@ -119,6 +121,14 @@ func UserHandlerUpdate(c *fiber.Ctx) error {
 
 	if userRequest.Phone != "" {
 		user.Phone = userRequest.Phone
+	}
+
+	if userRequest.Password != "" {
+		user.Password = userRequest.Password
+	}
+
+	if userRequest.Email != "" {
+		user.Email = userRequest.Email
 	}
 
 	resultUpdate := database.DB.Debug().Save(&user)
