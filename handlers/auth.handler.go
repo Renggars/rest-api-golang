@@ -5,9 +5,12 @@ import (
 	"github/models/entity"
 	"github/models/request"
 	"github/utils"
+	"log"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func LoginHandler(c *fiber.Ctx) error {
@@ -44,7 +47,22 @@ func LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	// generate token
+	claims := jwt.MapClaims{}
+	claims["name"] = user.Name
+	claims["email"] = user.Email
+	claims["address"] = user.Address
+	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+
+	token, errGenerateToken := utils.GenerateToken(&claims)
+	if errGenerateToken != nil {
+		log.Println(errGenerateToken)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "failed to generate token",
+		})
+	}
+
 	return c.JSON(fiber.Map{
-		"token": "secret-token",
+		"token": token,
 	})
 }
