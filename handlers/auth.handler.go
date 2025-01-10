@@ -4,6 +4,7 @@ import (
 	"github/database"
 	"github/models/entity"
 	"github/models/request"
+	"github/utils"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -26,6 +27,7 @@ func LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	// check user availability
 	var user entity.User
 	result := database.DB.Debug().First(&user, "email = ?", loginRequest.Email).Error
 	if result != nil {
@@ -34,9 +36,11 @@ func LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.Password != loginRequest.Password || user.Email != loginRequest.Email {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "invalid email or password",
+	// check password
+	isValid := utils.ComparePassword(loginRequest.Password, user.Password)
+	if !isValid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "invalid password",
 		})
 	}
 

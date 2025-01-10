@@ -5,6 +5,7 @@ import (
 	"github/models/entity"
 	"github/models/request"
 	"github/models/responses"
+	"github/utils"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -28,33 +29,43 @@ func UserHandlerGetAll(c *fiber.Ctx) error {
 
 func UserHandlerCreate(c *fiber.Ctx) error {
 	user := new(request.UserCreateRequest)
-
 	if err := c.BodyParser(user); err != nil {
 		return err
 	}
 
+	// validate
 	validate := validator.New()
-	if err := validate.Struct(user); err != nil {
+	errValidate := validate.Struct(user)
+	if errValidate != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"message": err.Error(),
-			"data":    nil},
-		)
+			"message": "failed",
+			"error":   errValidate.Error(),
+		})
 	}
 
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "failed to hash password",
+			"error":   err.Error(),
+		})
+	}
+
+	// Create a new user entity
 	newUser := entity.User{
 		Name:     user.Name,
 		Email:    user.Email,
-		Password: user.Password,
 		Address:  user.Address,
 		Phone:    user.Phone,
+		Password: hashedPassword, // Save the hashed password
 	}
 
-	result := database.DB.Debug().Create(&newUser)
-	if result.Error != nil {
+	errCreateUser := database.DB.Debug().Create(&newUser).Error
+	if errCreateUser != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": result.Error.Error(),
-			"data":    nil},
-		)
+			"message": "failed to create user",
+			"error":   errCreateUser.Error(),
+		})
 	}
 
 	return c.JSON(fiber.Map{
