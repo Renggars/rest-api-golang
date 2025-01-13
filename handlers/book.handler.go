@@ -5,7 +5,6 @@ import (
 	"github/database"
 	"github/models/entity"
 	"github/models/request"
-	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -27,32 +26,22 @@ func BookHandlerCreate(c *fiber.Ctx) error {
 		})
 	}
 
-	// Handle File
-	file, errFile := c.FormFile("cover")
-	if errFile != nil {
-		log.Println("Error File = ", errFile)
-	}
-
-	var filename string
-	if file != nil {
-		filename = file.Filename
-
-		errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", file.Filename))
-		if errSaveFile != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"message": "failed to save file",
-				"error":   errSaveFile.Error(),
-			})
-		}
+	// Validation Required Image Cover
+	var filenameString string
+	filename := c.Locals("filename")
+	if filename == nil {
+		return c.Status(422).JSON(fiber.Map{
+			"message": "image cover is required",
+		})
 	} else {
-		log.Println("no file uploaded")
+		filenameString = fmt.Sprintf("(%v)", filename)
 	}
 
 	// Create a new book entity
 	newBook := entity.Book{
 		Title:  book.Title,
 		Author: book.Author,
-		Cover:  filename,
+		Cover:  filenameString,
 	}
 
 	errCreateBook := database.DB.Debug().Create(&newBook).Error
