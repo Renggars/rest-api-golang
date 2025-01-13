@@ -5,6 +5,7 @@ import (
 	"github/database"
 	"github/models/entity"
 	"github/models/request"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -35,14 +36,19 @@ func BookHandlerCreate(c *fiber.Ctx) error {
 		})
 	}
 
-	filename := file.Filename
+	var filename string
+	if file != nil {
+		filename = file.Filename
 
-	errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", file.Filename))
-	if errSaveFile != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "failed to save file",
-			"error":   errSaveFile.Error(),
-		})
+		errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", file.Filename))
+		if errSaveFile != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"message": "failed to save file",
+				"error":   errSaveFile.Error(),
+			})
+		}
+	} else {
+		log.Println("failed to get file")
 	}
 
 	// Create a new book entity
