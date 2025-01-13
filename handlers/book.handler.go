@@ -30,10 +30,7 @@ func BookHandlerCreate(c *fiber.Ctx) error {
 	// Handle File
 	file, errFile := c.FormFile("cover")
 	if errFile != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "failed to get file",
-			"error":   errFile.Error(),
-		})
+		log.Println("Error File = ", errFile)
 	}
 
 	var filename string
@@ -48,7 +45,7 @@ func BookHandlerCreate(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		log.Println("failed to get file")
+		log.Println("no file uploaded")
 	}
 
 	// Create a new book entity
