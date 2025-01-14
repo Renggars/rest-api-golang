@@ -3,9 +3,12 @@ package utils
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+const DefaultPathAssetImage = "./public/covers/"
 
 func HandleSingleFile(c *fiber.Ctx) error {
 	// Handle File
@@ -72,4 +75,22 @@ func HandleMultipleFIle(c *fiber.Ctx) error {
 	c.Locals("filenames", filenames)
 
 	return c.Next()
+}
+
+func HandleRemoveFile(filename string, pathFile ...string) error {
+	if len(pathFile) > 0 {
+		err := os.Remove(pathFile[0] + filename)
+		if err != nil {
+			log.Println("Error Remove File = ", err)
+			return err
+		}
+	} else {
+		err := os.Remove(DefaultPathAssetImage + filename)
+		if err != nil {
+			log.Println("Error Remove File = ", err)
+			return err
+		}
+	}
+
+	return nil
 }

@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"fmt"
+	"github/database"
+	"github/models/entity"
 	"github/models/request"
+	"github/utils"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -26,35 +28,63 @@ func PhotoHandlerCreate(c *fiber.Ctx) error {
 	}
 
 	// Validation Required Image Cover
-	var filenameString string
-
 	filenames := c.Locals("filenames")
 	if filenames == nil {
 		return c.Status(422).JSON(fiber.Map{
 			"message": "image cover is required",
 		})
 	} else {
-		filenameString = fmt.Sprintf("(%v)", filenames)
+		filenameData := filenames.([]string)
+		for _, filename := range filenameData {
+			// Create a new photo entity
+			newPhoto := entity.Photo{
+				Image:      filename,
+				CategoryID: photo.CategoryID,
+			}
+
+			errCreatePhoto := database.DB.Debug().Create(&newPhoto).Error
+			if errCreatePhoto != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"message": "failed to create photo",
+					"error":   errCreatePhoto.Error(),
+				})
+			}
+		}
 	}
-
-	log.Println(filenameString)
-
-	// Create a new photo entity
-	// newPhoto := entity.Book{
-	// 	Image:      filename,
-	// 	CategoryID: photo.CategoryID,
-	// }
-
-	// errCreatePhoto := database.DB.Debug().Create(&newPhoto).Error
-	// if errCreatePhoto != nil {
-	// 	return c.Status(500).JSON(fiber.Map{
-	// 		"message": "failed to create photo",
-	// 		"error":   errCreatePhoto.Error(),
-	// 	})
-	// }
 
 	return c.JSON(fiber.Map{
 		"message": "success",
-		// "data":    newPhoto,
+	})
+}
+
+func PhotoHandlerDelete(c *fiber.Ctx) error {
+	photoId := c.Params("id")
+
+	var photo entity.Photo
+
+	// check availability photo
+	err := database.DB.Debug().First(&photo, "id=?", photoId).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "photo not found",
+		})
+	}
+
+	// handle delete photo
+	errDeleteFile := utils.HandleRemoveFile(photo.Image)
+	if errDeleteFile != nil {
+		log.Println("Error Remove File = ", errDeleteFile)
+	}
+
+	errDelete := database.DB.Debug().Delete(&photo).Error
+	if errDelete != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "failed to delete photo",
+			"error":   errDelete.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "success to delete photo",
 	})
 }
