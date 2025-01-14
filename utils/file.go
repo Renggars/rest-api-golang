@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 
@@ -20,6 +22,13 @@ func HandleSingleFile(c *fiber.Ctx) error {
 
 	var filename *string
 	if file != nil {
+		errChekoContentType := CheckContentType(file, "image/jpeg", "image/png", "image/jpg")
+		if errChekoContentType != nil {
+			return c.Status(422).JSON(fiber.Map{
+				"message": errChekoContentType.Error(),
+			})
+		}
+
 		filename = &file.Filename
 		extensionFile := filepath.Ext(*filename)
 		newFilename := fmt.Sprintf("gambar-satu%s", extensionFile)
@@ -97,4 +106,19 @@ func HandleRemoveFile(filename string, pathFile ...string) error {
 	}
 
 	return nil
+}
+
+func CheckContentType(file *multipart.FileHeader, contentTypes ...string) error {
+	if len(contentTypes) > 0 {
+		for _, contentType := range contentTypes {
+			contentTypeFile := file.Header.Get("Content-Type")
+			if contentTypeFile == contentType {
+				return nil
+			}
+		}
+
+		return errors.New("file must be an image")
+	} else {
+		return errors.New("not found content type to be checked")
+	}
 }
