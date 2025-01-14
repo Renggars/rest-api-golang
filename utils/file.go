@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -20,8 +21,10 @@ func HandleSingleFile(c *fiber.Ctx) error {
 	var filename *string
 	if file != nil {
 		filename = &file.Filename
+		extensionFile := filepath.Ext(*filename)
+		newFilename := fmt.Sprintf("gambar-satu%s", extensionFile)
 
-		errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", *filename))
+		errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", newFilename))
 		if errSaveFile != nil {
 			return c.Status(500).JSON(fiber.Map{
 				"message": "failed to save file",
@@ -54,7 +57,8 @@ func HandleMultipleFIle(c *fiber.Ctx) error {
 	for i, file := range files {
 		var filename string
 		if file != nil {
-			filename = fmt.Sprintf("%d-%v", i, file.Filename)
+			extensionFile := filepath.Ext(file.Filename)
+			filename = fmt.Sprintf("%d-%s%s", i, "gambar", extensionFile)
 
 			errSaveFile := c.SaveFile(file, fmt.Sprint("public/covers/", filename))
 			if errSaveFile != nil {
